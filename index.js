@@ -8,19 +8,27 @@ const { token } = require('./auth');
 
 client.on('ready', function () {
     client.application.commands.set([{
-        name: "music",
-        description: "Play audio on voice channels",
+        name: 'music',
+        description: 'Play audio on voice channels',
         options: [{
-            type: "STRING",
-            name: "resource",
-            description: "What to play (YouTube url/url)",
+            type: 'STRING',
+            name: 'resource',
+            description: 'What to play (YouTube url/url)',
             required: true
         }, {
-            type: "NUMBER",
-            name: "volume",
-            description: "The volume to play. The existing value is 100.",
+            type: 'NUMBER',
+            name: 'volume',
+            description: 'The volume to play.',
+            required: false
+        }, {
+            type: 'BOOLEAN',
+            name: 'loop',
+            description: 'Whether to loop the music',
             required: false
         }]
+    }, {
+        name: 'stopmusic',
+        description: 'Stop music currently playing'
     }]).then(function () {
         console.log('client is ready');
     });
@@ -72,6 +80,7 @@ client.on('interactionCreate', async function (interaction) {
                     if (inlineVol) {
                         resource.volume.setVolume(interaction.options.getNumber('volume') / 100);
                     }
+                    const loop = interaction.options.getBoolean('loop')
                     player.play(resource);
                     interaction.editReply('playing music...');
                     await voice.entersState(player, voice.AudioPlayerStatus.Playing, 10 * 1000);
@@ -83,6 +92,14 @@ client.on('interactionCreate', async function (interaction) {
                 }
             } else {
                 interaction.editReply('Run while you join the voice channel');
+            }
+        } else if (interaction.command.name == 'stopmusic') {
+            const conn = voice.getVoiceConnection(interaction.guild.id);
+            if (conn != undefined) {
+                conn.destroy();
+                interaction.reply({ content: 'Music stopped', ephemeral: true });
+            } else {
+                interaction.reply({ content: 'Music is not currently playing', ephemeral: true });
             }
         }
     }
