@@ -60,10 +60,12 @@ client.on('interactionCreate', async function (interaction) {
                         });
                     } else {
                         resource = voice.createAudioResource(url, {
-                            inputType: voice.StreamType.Arbitrary,
+                            inputType: voice.StreamType.Arbitrary
                         });
                     }
-                    
+                    if (interaction.options.getNumber('volume')) {
+                        resource.volume.setVolume(interaction.options.getNumber('volume'));
+                    }
                     player.play(resource);
                     interaction.editReply('playing music...');
                     await voice.entersState(player, voice.AudioPlayerStatus.Playing, 10 * 1000);
