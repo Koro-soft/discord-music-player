@@ -70,7 +70,7 @@ client.on('interactionCreate', async function (interaction) {
                         });
                     }
                     if (inlineVol) {
-                        resource.volume.setVolume(interaction.options.getNumber('volume'));
+                        resource.volume.setVolume(interaction.options.getNumber('volume') / 100);
                     }
                     player.play(resource);
                     interaction.editReply('playing music...');
