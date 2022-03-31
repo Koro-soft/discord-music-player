@@ -80,7 +80,10 @@ client.on('interactionCreate', async function (interaction) {
                     if (inlineVol) {
                         resource.volume.setVolume(interaction.options.getNumber('volume') / 100);
                     }
-                    const loop = interaction.options.getBoolean('loop')
+                    const loop = interaction.options.getBoolean('loop');
+                    if (loop) {
+                        
+                    }
                     player.play(resource);
                     interaction.editReply('playing music...');
                     await voice.entersState(player, voice.AudioPlayerStatus.Playing, 10 * 1000);
