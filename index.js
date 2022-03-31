@@ -48,6 +48,10 @@ client.on('interactionCreate', async function (interaction) {
                     conn.subscribe(player);
                     const url = interaction.options.getString('resource');
                     let resource
+                    let inlineVol = false;
+                    if (interaction.options.getNumber('volume')) {
+                        inlineVol = true;
+                    }
                     if (ytdl.validateURL(url)) {
                         const stream = ytdl(url, {
                             filter: format => format.audioCodec === 'opus' && format.container === 'webm',
@@ -56,14 +60,16 @@ client.on('interactionCreate', async function (interaction) {
                             format: 'audioonly',
                         });
                         resource = voice.createAudioResource(stream, {
-                            inputType: voice.StreamType.WebmOpus
+                            inputType: voice.StreamType.WebmOpus,
+                            inlineVolume: inlineVol
                         });
                     } else {
                         resource = voice.createAudioResource(url, {
-                            inputType: voice.StreamType.Arbitrary
+                            inputType: voice.StreamType.Arbitrary,
+                            inlineVolume: inlineVol
                         });
                     }
-                    if (interaction.options.getNumber('volume')) {
+                    if (inlineVol) {
                         resource.volume.setVolume(interaction.options.getNumber('volume'));
                     }
                     player.play(resource);
