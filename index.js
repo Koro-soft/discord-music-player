@@ -4,7 +4,6 @@ const client = new Discord.Client({
     intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_VOICE_STATES]
 });
 const voice = require('@discordjs/voice');
-const { token } = require('./auth');
 
 client.on('ready', function () {
     client.application.commands.set([{
@@ -91,7 +90,7 @@ client.on('interactionCreate', async function (interaction) {
     }
 })
 
-client.login(token);
+client.login();
 
 function createresource(url, vol) {
     let resource;
