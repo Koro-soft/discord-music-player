@@ -55,41 +55,24 @@ client.on('interactionCreate', async function (interaction) {
                     });
                     conn.subscribe(player);
                     const url = interaction.options.getString('resource');
-                    let resource
-                    let inlineVol = false;
-                    if (interaction.options.getNumber('volume')) {
-                        inlineVol = true;
-                    }
-                    if (ytdl.validateURL(url)) {
-                        const stream = ytdl(url, {
-                            filter: format => format.audioCodec === 'opus' && format.container === 'webm',
-                            quality: 'highest',
-                            highWaterMark: 32 * 1024 * 1024,
-                            format: 'audioonly',
-                        });
-                        resource = voice.createAudioResource(stream, {
-                            inputType: voice.StreamType.WebmOpus,
-                            inlineVolume: inlineVol
-                        });
-                    } else {
-                        resource = voice.createAudioResource(url, {
-                            inputType: voice.StreamType.Arbitrary,
-                            inlineVolume: inlineVol
-                        });
-                    }
-                    if (inlineVol) {
-                        resource.volume.setVolume(interaction.options.getNumber('volume') / 100);
-                    }
+                    let resource = createresource(url, interaction.options.getNumber('volume'));
                     const loop = interaction.options.getBoolean('loop');
                     if (loop) {
-                        
+                        interaction.editReply('playing music...');
+                        while (loop) {
+                            player.play(resource);
+                            await voice.entersState(player, voice.AudioPlayerStatus.Playing, 10 * 1000);
+                            await voice.entersState(player, voice.AudioPlayerStatus.Idle, 24 * 60 * 60 * 1000);
+                            resource = createresource(url, interaction.options.getNumber('volume'));
+                        }
+                    } else {
+                        player.play(resource);
+                        interaction.editReply('playing music...');
+                        await voice.entersState(player, voice.AudioPlayerStatus.Playing, 10 * 1000);
+                        await voice.entersState(player, voice.AudioPlayerStatus.Idle, 24 * 60 * 60 * 1000);
+                        interaction.editReply('end');
+                        conn.destroy();
                     }
-                    player.play(resource);
-                    interaction.editReply('playing music...');
-                    await voice.entersState(player, voice.AudioPlayerStatus.Playing, 10 * 1000);
-                    await voice.entersState(player, voice.AudioPlayerStatus.Idle, 24 * 60 * 60 * 1000);
-                    interaction.editReply('end');
-                    conn.destroy();
                 } else {
                     interaction.editReply('Unable to join audio channel');
                 }
@@ -109,3 +92,32 @@ client.on('interactionCreate', async function (interaction) {
 })
 
 client.login(token);
+
+function createresource(url, vol) {
+    let resource;
+    let inlineVol = false;
+    if (vol) {
+        inlineVol = true;
+    }
+    if (ytdl.validateURL(url)) {
+        const stream = ytdl(url, {
+            filter: format => format.audioCodec === 'opus' && format.container === 'webm',
+            quality: 'highest',
+            highWaterMark: 32 * 1024 * 1024,
+            format: 'audioonly',
+        });
+        resource = voice.createAudioResource(stream, {
+            inputType: voice.StreamType.WebmOpus,
+            inlineVolume: inlineVol
+        });
+    } else {
+        resource = voice.createAudioResource(url, {
+            inputType: voice.StreamType.Arbitrary,
+            inlineVolume: inlineVol
+        });
+    }
+    if (inlineVol) {
+        resource.volume.setVolume(vol / 100);
+    }
+    return resource;
+}
