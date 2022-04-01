@@ -66,7 +66,7 @@ client.on('interactionCreate', async function (interaction) {
                         }
                     } else {
                         player.play(resource);
-                        interaction.editReply('playing music...');
+                        interaction.editReply('playing music... Run /stopmusic to stop music');
                         await voice.entersState(player, voice.AudioPlayerStatus.Playing, 10 * 1000);
                         await voice.entersState(player, voice.AudioPlayerStatus.Idle, 24 * 60 * 60 * 1000);
                         interaction.editReply('end');
