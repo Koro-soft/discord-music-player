@@ -7,7 +7,7 @@ const voice = require('@discordjs/voice');
 
 client.on('ready', function () {
     client.application.commands.set([{
-        name: 'music',
+        name: 'play',
         description: 'Play audio on voice channels',
         options: [{
             type: 'STRING',
