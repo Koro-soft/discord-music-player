@@ -57,7 +57,7 @@ client.on('interactionCreate', async function (interaction) {
                     let resource = createresource(url, interaction.options.getNumber('volume'));
                     const loop = interaction.options.getBoolean('loop');
                     if (loop) {
-                        interaction.editReply('playing music...');
+                        interaction.editReply('playing music... Run /stopmusic to stop music');
                         while (loop) {
                             player.play(resource);
                             await voice.entersState(player, voice.AudioPlayerStatus.Playing, 10 * 1000);
@@ -65,8 +65,8 @@ client.on('interactionCreate', async function (interaction) {
                             resource = createresource(url, interaction.options.getNumber('volume'));
                         }
                     } else {
+                        interaction.editReply('playing music...');
                         player.play(resource);
-                        interaction.editReply('playing music... Run /stopmusic to stop music');
                         await voice.entersState(player, voice.AudioPlayerStatus.Playing, 10 * 1000);
                         await voice.entersState(player, voice.AudioPlayerStatus.Idle, 24 * 60 * 60 * 1000);
                         interaction.editReply('end');
