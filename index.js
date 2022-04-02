@@ -36,59 +36,67 @@ client.on('ready', function () {
 client.on('interactionCreate', async function (interaction) {
     if (interaction.isCommand()) {
         if (interaction.command.name == 'play') {
-            await interaction.reply({ content: 'joining voice channel...', ephemeral: true });
-            if (interaction.member.voice.channel) {
-                if (interaction.member.voice.channel.joinable && interaction.member.voice.channel.speakable) {
-                    const conn = voice.joinVoiceChannel({
-                        adapterCreator: interaction.guild.voiceAdapterCreator,
-                        channelId: interaction.member.voice.channelId,
-                        guildId: interaction.guild.id,
-                        selfDeaf: true,
-                        selfMute: false
-                    });
-                    interaction.editReply('Downloading resource...');
-                    const player = voice.createAudioPlayer({
-                        behaviors: {
-                            noSubscriber: voice.NoSubscriberBehavior.Pause,
-                        }
-                    });
-                    conn.subscribe(player);
-                    const url = interaction.options.getString('resource');
-                    let resource = createresource(url, interaction.options.getNumber('volume'));
-                    const loop = interaction.options.getBoolean('loop');
-                    if (loop) {
-                        interaction.editReply('playing music... Run /stopmusic to stop music');
-                        while (loop) {
+            if (interaction.member.permissions.has(Discord.Permissions.FLAGS.CONNECT)) {
+                await interaction.reply({ content: 'joining voice channel...', ephemeral: true });
+                if (interaction.member.voice.channel) {
+                    if (interaction.member.voice.channel.joinable && interaction.member.voice.channel.speakable) {
+                        const conn = voice.joinVoiceChannel({
+                            adapterCreator: interaction.guild.voiceAdapterCreator,
+                            channelId: interaction.member.voice.channelId,
+                            guildId: interaction.guild.id,
+                            selfDeaf: true,
+                            selfMute: false
+                        });
+                        interaction.editReply('Downloading resource...');
+                        const player = voice.createAudioPlayer({
+                            behaviors: {
+                                noSubscriber: voice.NoSubscriberBehavior.Pause,
+                            }
+                        });
+                        conn.subscribe(player);
+                        const url = interaction.options.getString('resource');
+                        let resource = createresource(url, interaction.options.getNumber('volume'));
+                        const loop = interaction.options.getBoolean('loop');
+                        if (loop) {
+                            interaction.editReply('playing music... Run /stopmusic to stop music');
+                            while (loop && conn.state.status != voice.VoiceConnectionStatus.Destroyed) {
+                                player.play(resource);
+                                await voice.entersState(player, voice.AudioPlayerStatus.Playing, 10 * 1000);
+                                await voice.entersState(player, voice.AudioPlayerStatus.Idle, 24 * 60 * 60 * 1000);
+                                resource = createresource(url, interaction.options.getNumber('volume'));
+                            }
+                        } else {
+                            interaction.editReply('playing music...');
                             player.play(resource);
                             await voice.entersState(player, voice.AudioPlayerStatus.Playing, 10 * 1000);
                             await voice.entersState(player, voice.AudioPlayerStatus.Idle, 24 * 60 * 60 * 1000);
-                            resource = createresource(url, interaction.options.getNumber('volume'));
+                            interaction.editReply('end');
+                            conn.destroy();
                         }
                     } else {
-                        interaction.editReply('playing music...');
-                        player.play(resource);
-                        await voice.entersState(player, voice.AudioPlayerStatus.Playing, 10 * 1000);
-                        await voice.entersState(player, voice.AudioPlayerStatus.Idle, 24 * 60 * 60 * 1000);
-                        interaction.editReply('end');
-                        conn.destroy();
+                        interaction.editReply('Unable to join audio channel');
                     }
                 } else {
-                    interaction.editReply('Unable to join audio channel');
+                    interaction.editReply('Run while you join the voice channel');
                 }
             } else {
-                interaction.editReply('Run while you join the voice channel');
+                interaction.reply({ content: 'you do not have permission to play music', ephemeral: true });
             }
         } else if (interaction.command.name == 'stopmusic') {
-            const conn = voice.getVoiceConnection(interaction.guild.id);
-            if (conn != undefined) {
-                conn.destroy();
-                interaction.reply({ content: 'Music stopped', ephemeral: true });
+            if (interaction.member.permissions.has(Discord.Permissions.FLAGS.MOVE_MEMBERS)) {
+                const conn = voice.getVoiceConnection(interaction.guild.id);
+                if (conn != undefined) {
+                    conn.destroy();
+                    interaction.reply({ content: 'Music stopped', ephemeral: true });
+                } else {
+                    interaction.reply({ content: 'Music is not currently playing', ephemeral: true });
+                }
             } else {
-                interaction.reply({ content: 'Music is not currently playing', ephemeral: true });
+                interaction.reply({ content: 'you do not have the permission to stop music', ephemeral: true });
             }
         }
     }
-})
+});
 
 client.login();
 
