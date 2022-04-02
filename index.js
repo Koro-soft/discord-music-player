@@ -36,7 +36,7 @@ client.on('ready', function () {
 client.on('interactionCreate', async function (interaction) {
     if (interaction.isCommand()) {
         if (interaction.command.name == 'play') {
-            if (interaction.member.permissions.has(Discord.Permissions.FLAGS.CONNECT)) {
+            if (interaction.member.permissions.has(Discord.Permissions.FLAGS.SPEAK)) {
                 await interaction.reply({ content: 'joining voice channel...', ephemeral: true });
                 if (interaction.member.voice.channel) {
                     if (interaction.member.voice.channel.joinable && interaction.member.voice.channel.speakable) {
